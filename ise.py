@@ -4,6 +4,7 @@ import os
 import re
 from furl import furl
 from datetime import datetime, timedelta
+from bs4 import BeautifulSoup
 
 import requests
 
@@ -19,7 +20,7 @@ class InvalidMacAddress(Exception):
 
 
 class ERS(object):
-    def __init__(self, ise_node, ers_user, ers_pass, verify=False, disable_warnings=False, use_csrf=False, timeout=2,
+    def __init__(self, ise_node, ers_user, ers_pass, verify=False, disable_warnings=False, use_csrf=False, timeout=4,
                  protocol='https'):
         """
         Class to interact with Cisco ISE via the ERS API.
@@ -139,6 +140,17 @@ class ERS(object):
             req = self.ise.request(method, url, data=data, timeout=self.timeout)
 
         return req
+
+    def get_version(self):
+        # Build MnT API URL
+        url =  "https://" + self.ise_node + "/admin/API/mnt/Version"
+        # Access MnT API
+        req = self.ise.request('get', url, data=None, timeout=self.timeout)
+        # Extract version of first node
+        soup = BeautifulSoup(req.content,'xml')
+        version = soup.find_all('version')[0].get_text()
+
+        return version
 
     def _get_groups(self, url, filter: str = None, size: int = 20, page: int = 1):
         """
