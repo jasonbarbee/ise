@@ -48,9 +48,10 @@ class ERS(object):
         self.csrf_expires = None
         self.timeout = timeout
         self.ise.headers.update({'Connection': 'keep_alive'})
-
+    
         if self.disable_warnings:
             requests.packages.urllib3.disable_warnings()
+        self.version = self.get_version()
 
     @staticmethod
     def _mac_test(mac):
@@ -148,9 +149,10 @@ class ERS(object):
         req = self.ise.request('get', url, data=None, timeout=self.timeout)
         # Extract version of first node
         soup = BeautifulSoup(req.content,'xml')
-        version = soup.find_all('version')[0].get_text()
-
-        return version
+        full_version = soup.find_all('version')[0].get_text()
+        short_version = float(full_version[0:3])
+        # print("ISE Initializing - Version Check " + full_version)
+        return short_version
 
     def _get_groups(self, url, filter: str = None, size: int = 20, page: int = 1):
         """
