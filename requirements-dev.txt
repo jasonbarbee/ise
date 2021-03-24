@@ -16,3 +16,4 @@ ptpython
 pytest
 setuptools
 wheel
+beautifulsoup4

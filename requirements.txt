@@ -12,3 +12,4 @@
 
 furl
 requests
+beautifulsoup4
