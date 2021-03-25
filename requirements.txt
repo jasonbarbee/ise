@@ -13,3 +13,4 @@
 furl
 requests
 beautifulsoup4
+lxml
