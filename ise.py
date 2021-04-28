@@ -143,16 +143,20 @@ class ERS(object):
         return req
 
     def get_version(self):
-        # Build MnT API URL
-        url =  "https://" + self.ise_node + "/admin/API/mnt/Version"
-        # Access MnT API
-        req = self.ise.request('get', url, data=None, timeout=self.timeout)
-        # Extract version of first node
-        soup = BeautifulSoup(req.content,'xml')
-        full_version = soup.find_all('version')[0].get_text()
-        short_version = float(full_version[0:3])
-        # print("ISE Initializing - Version Check " + full_version)
-        return short_version
+        try:
+            # Build MnT API URL
+            url =  "https://" + self.ise_node + "/admin/API/mnt/Version"
+            # Access MnT API
+            req = self.ise.request('get', url, data=None, timeout=self.timeout)
+            # Extract version of first node
+            soup = BeautifulSoup(req.content,'xml')
+            full_version = soup.find_all('version')[0].get_text()
+            # Get simple version ie: 2.7
+            short_version = float(full_version[0:3])
+            # print("ISE Initializing - Version Check " + full_version)
+            return short_version
+        except:
+            return ""
 
     def _get_groups(self, url, filter: str = None, size: int = 20, page: int = 1):
         """
