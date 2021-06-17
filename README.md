@@ -1,5 +1,5 @@
 
-[![Known Vulnerabilities](https://snyk.io/test/github/falkowich/ise/badge.svg?style=plastic)](https://snyk.io/test/github/falkowich/ise) [![Maintainability](https://api.codeclimate.com/v1/badges/b377fd23b5de7444c258/maintainability)](https://codeclimate.com/github/falkowich/ise/maintainability) ![Publish PyPI and TestPyPI](https://github.com/falkowich/ise/workflows/Publish%20ise%20to%20PyPI%20and%20TestPyPI%20%F0%9F%93%A6/badge.svg)
+[![Known Vulnerabilities](https://snyk.io/test/github/falkowich/ise/badge.svg?style=plastic)](https://snyk.io/test/github/falkowich/ise) [![Maintainability](https://api.codeclimate.com/v1/badges/b377fd23b5de7444c258/maintainability)](https://codeclimate.com/github/falkowich/ise/maintainability) ![Publish PyPI and TestPyPI](https://github.com/falkowich/ise/workflows/Publish%20ise%20to%20PyPI%20and%20TestPyPI%20%F0%9F%93%A6/badge.svg) [![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/falkowich/ise)
 
 # ISE
 
@@ -17,26 +17,51 @@ I forked from them and updated so it worked with ISE 2.2.x and changed all funct
   * *One big thing is that module is now renamed from ise.cream to just ise.*
 * First publish to PyPi with the help of [https://github.com/JonasKs](https://github.com/JonasKs).
 * Add support for ISE CSRF and some TrustSec objects (SGT, SGACL, Egress Policy Matrix) [https://github.com/joshand](https://github.com/joshand).
+* Merged [Enhancement to Device Group and Device Functions](https://github.com/falkowich/ise/pull/152) with a big thanks to [https://github.com/hpreston](https://github.com/hpreston)
+  * New functions for devicegroups where added » add_device_group, update_device_group, delete_device_group. 
+  * New function to update devices where added » update_device
+  * Updated get_device_group for looking up names
+  * Updated add_device with new parameters and device_payload
+* Updated dependensies for dev and prod, created new manual testcases, cleaned up the code with black. 
 
 ## Status
 
 Tested and used in our environment at work. But as usual it's up to you to test this out in a test environment so everything works as intended.
 
-Is you have any suggestions or find a bug, create a issue and I'll try to fix it :)
+Is you have any suggestions or find a bug, create a issue and we will try to fix it :)
 
 ## Testing
 
 Testing has been completed on the following ISE versions:
-* v2.4.0.357 and with python 3.7.3  
+
+* v2.4.0.357 and with python 3.7.3
 * v2.4.0.357 (Patch 11), Python 3.7.7 (joshand)
 * v2.7.0.356 (Patch 1), Python 3.7.7 (joshand)
 
-Until a mock of ERS-API is done, a simple test is in test/test_ers.py  
-To run tests:
+There are two tests available in tests/ directory.
+
+### Manual test
+
+To run the "manual" tests:
 
 * make a copy of config-DEFAULT.py to config.py
-* edit uri with settings to your test ise
-* run python test-ers.py
+* edit uri_list with settings to your test ise server
+* run python manual_test_ers.py
+
+### Pytest
+
+To run the testfiles with pytest-recording.  
+The first time this is runned the directory cassettes/ are created with saved .yaml files from the test.
+That is so that the tests can be repeated without contacting ISE everytime.
+
+* make a copy of config-DEFAULT.py to config.py
+  * edit uri with settings to your test ise instance.
+  * in the config.py there are a list where you can set multiple versions if ise instances.
+* to run the tests
+  * pytest --record-mode=rewrite (To rewrite cassettes with live data)
+  * pytest (to reuse the recorded cassetes)
+
+The plan is to extend the testing with pytest, and hopefully get good testcoverage on this library.
 
 ### Enable REST API
 
@@ -266,6 +291,100 @@ ise.get_device_groups()['response']
 
 ```
 
+#### Get device group(s) details
+
+```python
+# Provide a device_group_id 
+ise.get_device_group(device_group_id="4b26b5b0-71a6-11eb-b5e0-52cf9299494c")
+
+{'success': True,
+ 'response': {'id': '4b26b5b0-71a6-11eb-b5e0-52cf9299494c',
+  'name': 'Device Type#All Device Types#NXOS',
+  'description': '',
+  'link': {'rel': 'self',
+   'href': 'https://tst01-z0-vm-ise-01:9060/ers/config/networkdevicegroup/4b26b5b0-71a6-11eb-b5e0-52cf9299494c',
+   'type': 'application/json'},
+  'othername': 'Device Type'},
+ 'error': ''}
+
+
+# Provide a partial group name to look for 
+ise.get_device_group(name="NXOS")
+
+{'success': True,
+ 'response': {'id': '4b26b5b0-71a6-11eb-b5e0-52cf9299494c',
+  'name': 'Device Type#All Device Types#NXOS',
+  'description': '',
+  'link': {'rel': 'self',
+   'href': 'https://tst01-z0-vm-ise-01:9060/ers/config/networkdevicegroup/4b26b5b0-71a6-11eb-b5e0-52cf9299494c',
+   'type': 'application/json'},
+  'othername': 'Device Type'},
+ 'error': ''}
+
+# If more than one group found with for a name a list is returned
+ise.get_device_group(name="Device Types")
+
+[
+  {'success': True,
+  'response': {'id': '70c79c30-8bff-11e6-996c-525400b48521',
+   'name': 'Device Type#All Device Types',
+   'description': 'All Device Types',
+   'link': {'rel': 'self',
+    'href': 'https://tst01-z0-vm-ise-01:9060/ers/config/networkdevicegroup/70c79c30-8bff-11e6-996c-525400b48521',
+    'type': 'application/json'},
+   'othername': 'Device Type'},
+  'error': ''},
+ {'success': True,
+  'response': {'id': 'ee45c0a0-7fbc-11eb-ac01-36750594a888',
+   'name': 'Device Type#All Device Types#IOS-XE',
+   'description': '',
+   'link': {'rel': 'self',
+    'href': 'https://tst01-z0-vm-ise-01:9060/ers/config/networkdevicegroup/ee45c0a0-7fbc-11eb-ac01-36750594a888',
+    'type': 'application/json'},
+   'othername': 'Device Type'},
+  'error': ''},
+ {'success': True,
+  'response': {'id': '4b26b5b0-71a6-11eb-b5e0-52cf9299494c',
+   'name': 'Device Type#All Device Types#NXOS',
+   'description': '',
+   'link': {'rel': 'self',
+    'href': 'https://tst01-z0-vm-ise-01:9060/ers/config/networkdevicegroup/4b26b5b0-71a6-11eb-b5e0-52cf9299494c',
+    'type': 'application/json'},
+   'othername': 'Device Type'},
+  'error': ''},
+]
+```
+
+#### Add a new device group 
+
+```python
+ise.add_device_group(name="Device Type#All Device Types#Python Device Type", description="From Python")
+
+{'success': True,
+ 'response': 'Device Type#All Device Types#Python Device Type Added Successfully',
+ 'error': ''}
+```
+
+#### Update a device group 
+
+```python
+ise.update_device_group(device_group_oid=group_id, name="Device Type#All Device Types#Updated Device Type", description="Update Description")
+
+{'success': True,
+ 'response': 'e7db3e00-a36d-11eb-ac01-36750594a888 Updated Successfully',
+ 'error': ''}
+```
+
+#### Remove a device group 
+
+```python
+ise.delete_device_group(name="Device Type#All Device Types#Python Device Type")
+
+{'success': True,
+ 'response': 'Device Type#All Device Types#Python Device Type Deleted Successfully',
+ 'error': ''}
+```
+
 #### Add a device
 
 ```python
@@ -278,7 +397,19 @@ ise.add_device(name='testdevice03',
                dev_type='Device Type#All Device Types#Switch')
 
 {'error': '', 'response': 'testdevice03 Added Successfully', 'success': True}
+```
 
+#### Update a device 
+
+```python
+ise.update_device("PYTHON-DEVICE", tacacs_shared_secret="NEWTACACS")
+
+{'success': True,
+ 'response': {'updatedField': [{'field': 'TacacsSettings.ConnectModeOptions',
+    'oldValue': '',
+    'newValue': 'ON_LEGACY'},
+   {'field': 'TacacsSettings.SharedSecret', 'newValue': 'NEWTACACS'}]},
+ 'error': ''}
 ```
 
 #### Delete a device
