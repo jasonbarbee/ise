@@ -10,7 +10,9 @@
 # `Pipfile.lock` and then regenerate `requirements*.txt`.
 ################################################################################
 
+beautifulsoup4
 furl
+lxml
 requests
 beautifulsoup4
 lxml

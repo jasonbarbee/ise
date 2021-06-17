@@ -10,11 +10,13 @@
 # `Pipfile.lock` and then regenerate `requirements*.txt`.
 ################################################################################
 
+black
 flake8
 pipenv-to-requirements
-ptpython
 pytest
+pytest-recording
 setuptools
+twine
 wheel
 beautifulsoup4
 lxml
